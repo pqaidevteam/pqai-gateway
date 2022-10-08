@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -17,6 +18,7 @@ class TestServer(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
         self.client.testing = True
+        self.test_token = os.environ.get("TEST_TOKEN")
         self.schema = {
             "type": "object",
             "properties": {
@@ -27,6 +29,22 @@ class TestServer(unittest.TestCase):
                 "score": {"type": "number"},
             }
         }
+    
+    def test__cannot_access_without_authorization_header(self):
+        response = self.client.post('/search/102', json={"query": "drones"})
+        self.assertEqual(response.status_code, 401)
+    
+    def test__cannot_access_with_invalid_token(self):
+        payload = {"query": "drones"}
+        headers = {"Authorization": "Bearer invalid-token"}
+        response = self.client.post('/search/102', json=payload, headers=headers)
+        self.assertEqual(response.status_code, 401)
+    
+    def test__cannot_access_with_empty_token(self):
+        payload = {"query": "drones"}
+        headers = {"Authorization": "Bearer "}
+        response = self.client.post('/search/102', json=payload, headers=headers)
+        self.assertEqual(response.status_code, 401)
 
     def test__search_102_route(self):
         payload = {
@@ -36,7 +54,8 @@ class TestServer(unittest.TestCase):
             "n": 10,
             "rerank": False
         }
-        response = self.client.post('/search/102', json=payload)
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        response = self.client.post('/search/102', json=payload, headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertValidSearchResponse(response)
 
@@ -44,7 +63,8 @@ class TestServer(unittest.TestCase):
         payload = {
             "query": "Sound suppression means in a drone"
         }
-        response = self.client.post('/search/103', json=payload)
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        response = self.client.post('/search/103', json=payload, headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("query", data)
@@ -60,12 +80,16 @@ class TestServer(unittest.TestCase):
                 self.fail(f"Invalid search result: {e}")
 
     def test__similar_route(self):
-        response = self.client.get('/patents/US7654321B2/similar')
+        route = '/patents/US7654321B2/similar'
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        response = self.client.get(route, headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertValidSearchResponse(response)
 
     def test__prior_art_route(self):
-        response = self.client.get('/patents/US7654321B2/claims/1/prior-art')
+        route = '/patents/US7654321B2/claims/1/prior-art'
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        response = self.client.get(route, headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertValidSearchResponse(response)
 
