@@ -4,14 +4,18 @@ from pathlib import Path
 from pydantic import BaseModel
 from fastapi import APIRouter
 
-from plugins.search.obvious import Combiner
-
+THIS_DIR = Path(__file__).resolve().parent
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.append(THIS_DIR.as_posix())
 sys.path.append(BASE_DIR.as_posix())
 
 from core.encoder_srv import encode
 from core.index_srv import vector_search
 from core.documents import Document
+
+from filters import PublicationDateFilter
+from obvious import Combiner
+
 
 class SearchResult(Document):
 
@@ -41,9 +45,15 @@ class SearchRequest(BaseModel):
     rerank: bool = False
 
 def search(req: SearchRequest):
+    date_filter = PublicationDateFilter(req.after, req.before)
     qvec = vectorize(req.query)
-    matches = vector_search(qvec, req.n)
-    results = [SearchResult(*match) for match in matches]
+    results = []
+    limit = 30
+    m = req.n
+    while len(results) < req.n and m < limit:
+        results = [SearchResult(*hit) for hit in vector_search(qvec, m)]
+        results = date_filter.apply(results)
+        m = m * 2
     return {
         "query": req.query,
         "results": [r.json() for r in results]

@@ -49,8 +49,6 @@ class TestServer(unittest.TestCase):
     def test__search_102_route(self):
         payload = {
             "query": "Sound suppression means in a drone",
-            "before": "2020-01-01",
-            "after": "2010-12-31",
             "n": 10,
             "rerank": False
         }
@@ -87,7 +85,7 @@ class TestServer(unittest.TestCase):
         self.assertValidSearchResponse(response)
 
     def test__prior_art_route(self):
-        route = '/patents/US7654321B2/claims/1/prior-art'
+        route = '/patents/US11321873B1/claims/1/prior-art'
         headers = {"Authorization": f"Bearer {self.test_token}"}
         response = self.client.get(route, headers=headers)
         self.assertEqual(response.status_code, 200)

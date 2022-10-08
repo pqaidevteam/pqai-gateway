@@ -14,3 +14,7 @@ class Document:
             "publication_date": self._data["publicationDate"],
             "claims": self._data["claims"]
         }
+    
+    @property
+    def publication_date(self) -> str:
+        return self._data["publicationDate"]
