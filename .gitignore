@@ -12,6 +12,9 @@ venv.bak/
 /assets/*
 !assets/README.md
 
+/plugins/*/assets/*
+!/plugins/*/assets/README.md
+
 docker-compose.yml
 .env
 
