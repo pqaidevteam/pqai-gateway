@@ -13,7 +13,6 @@ load_dotenv(env_file.as_posix())
 
 from cpcscheme import CPCNode, CPCTree
 
-
 class TestCPCScheme(unittest.TestCase):
 
     def setUp(self):
@@ -46,6 +45,15 @@ class TestCPCScheme(unittest.TestCase):
         self.assertIsInstance(sections, list)
         self.assertEqual(len(sections), 9)
         self.assertTrue(isinstance(s, CPCNode) for s in sections)
+    
+    def test__can_return_definition(self):
+        code = "A"
+        definition = self.cpc_tree.get_definition(code)
+        self.assertEqual(definition, "HUMAN NECESSITIES")
+        codes = ["A", "A24", "A24D", "A24D3/00", "A24D3/02",
+                 "A24D3/0204", "A24D3/0208", "A24D3/0216"]
+        for code in codes:
+            self.assertIsInstance(self.cpc_tree.get_definition(code), str)
 
 
 class TestCPCNode(unittest.TestCase):
@@ -81,15 +89,19 @@ class TestCPCNode(unittest.TestCase):
         self.assertEqual(repr(node), "<CPCNode A01B>")
     
     def test__can_return_level(self):
-        self.assertEqual(CPCNode("A", self.tree).level, 0)
-        self.assertEqual(CPCNode("A24", self.tree).level, 1)
-        self.assertEqual(CPCNode("A24D", self.tree).level, 2)
-        self.assertEqual(CPCNode("A24D3/00", self.tree).level, 3)
-        self.assertEqual(CPCNode("A24D3/02", self.tree).level, 4)
-        self.assertEqual(CPCNode("A24D3/0204", self.tree).level, 5)
-        self.assertEqual(CPCNode("A24D3/0208", self.tree).level, 6)
-        self.assertEqual(CPCNode("A24D3/0216", self.tree).level, 7)
+        codes = ["A", "A24", "A24D", "A24D3/00", "A24D3/02",
+                 "A24D3/0204", "A24D3/0208", "A24D3/0216"]
+        for i, code in enumerate(codes):
+            self.assertEqual(CPCNode(code, self.tree).level, i)
         
+    def test__can_return_definition(self):
+        node = CPCNode("A", self.tree)
+        self.assertEqual(node.definition, "HUMAN NECESSITIES")
+        codes = ["A", "A24", "A24D", "A24D3/00", "A24D3/02",
+                 "A24D3/0204", "A24D3/0208", "A24D3/0216"]
+        for code in codes:
+            self.assertIsInstance(CPCNode(code, self.tree).definition, str)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -27,6 +27,7 @@ class CPCTree(metaclass=Singleton):
             symbol = row["symbol"]
             if symbol not in tree:
                 tree[symbol] = {"parent": None, "children": []}
+            tree[symbol]["definition"] = row["title_full"]
             if not row["parents"]:
                 continue
             parent = row["parents"][0]
@@ -52,6 +53,11 @@ class CPCTree(metaclass=Singleton):
         if code not in self:
             raise ValueError(f"Invalid code: {code}")
         return self._tree[code]["parent"]
+    
+    def get_definition(self, code: str):
+        if code not in self:
+            raise ValueError(f"Invalid code: {code}")
+        return self._tree[code]["definition"]
 
 
 class CPCNode:
@@ -86,3 +92,7 @@ class CPCNode:
         if self.parent is None:
             return 0
         return self.parent.level + 1
+
+    @property
+    def definition(self):
+        return self.tree.get_definition(self.code)

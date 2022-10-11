@@ -90,6 +90,19 @@ class TestServer(unittest.TestCase):
         response = self.client.get(route, headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertValidSearchResponse(response)
+    
+    def test__cpc_data_route(self):
+        route = "/cpcs/H04W52/00"
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        response = self.client.get(route, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsInstance(data, dict)
+        self.assertIn("cpc", data)
+        self.assertIn("parent", data)
+        self.assertIn("children", data)
+        self.assertIn("definition", data)
+        self.assertIn("full_definition", data)
 
     def assertValidSearchResponse(self, response):
         data = response.json()

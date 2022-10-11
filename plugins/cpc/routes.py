@@ -21,14 +21,24 @@ router = APIRouter()
 async def get_cpc_data(cpc: str):
     if cpc not in cpc_tree:
         return Response(status_code=404, content="Invalid CPC code")
-
-@router.get('/cpcs/{cpc}/definition')
-async def get_definition(cpc: str):
-    if cpc not in cpc_tree:
-        return Response(status_code=404, content="Invalid CPC code")
+    
+    node = CPCNode(cpc, cpc_tree)
+    
+    full_definition = []
+    p = node
+    while (p.parent is not None):
+        full_definition.append([str(p), p.definition])
+        p = p.parent
+    
+    return {
+        "cpc": cpc,
+        "parent": node.parent,
+        "children": node.children,
+        "definition": node.definition,
+        "full_definition": full_definition
+    }
 
 @router.get('/cpcs/{cpc}/subtree')
 async def get_subtree(cpc: str):
     if cpc not in cpc_tree:
         return Response(status_code=404, content="Invalid CPC code")
-
