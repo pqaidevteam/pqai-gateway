@@ -1,5 +1,3 @@
-_Note: This repository is under active development and not ready for production yet._
-
 # PQAI Gateway
 
 Public facing API for providing functionality such as prior-art searching
