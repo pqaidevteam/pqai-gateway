@@ -15,7 +15,6 @@ venv.bak/
 /plugins/*/assets/*
 !/plugins/*/assets/README.md
 
-docker-compose.yml
 .env
 
 .vscode/

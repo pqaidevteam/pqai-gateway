@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  pqai_gateway:
+    image: pqai_gateway
+    container_name: pqai_gateway
+    build: .
+    restart: always
+    volumes:
+      - type: bind
+        source: ./plugins
+        target: /app/plugins
+    ports:
+      - ${PORT}:80
+    environment:
+      - PORT=${PORT}
+      - DB_SRV_ENDPOINT=${DB_SRV_ENDPOINT}
+      - CLASSIFIER_SRV_ENDPOINT=${CLASSIFIER_SRV_ENDPOINT}
+      - RERANKER_SRV_ENDPOINT=${RERANKER_SRV_ENDPOINT}
+      - INDEX_SRV_ENDPOINT=${INDEX_SRV_ENDPOINT}
+      - ENCODER_SRV_ENDPOINT=${ENCODER_SRV_ENDPOINT}
+      - SNIPPET_SRV_ENDPOINT=${SNIPPET_SRV_ENDPOINT}
