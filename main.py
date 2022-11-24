@@ -49,6 +49,7 @@ def import_plugin(name):
     path = f"plugins.{name}.routes"
     routes = importlib.import_module(path)
     app.include_router(routes.router)
+    print(f"Loaded plugin: {name}")
 
 
 if 'plugins' in config:
