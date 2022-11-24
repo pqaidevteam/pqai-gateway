@@ -51,7 +51,8 @@ def search(req: SearchRequest):
     limit = 30
     m = req.n
     while len(results) < req.n and m < limit:
-        results = [SearchResult(*hit) for hit in vector_search(qvec, m)]
+        neighbors = vector_search(qvec, m)
+        results = [SearchResult(*n) for n in neighbors]
         results = date_filter.apply(results)
         m = m * 2
     return {

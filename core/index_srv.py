@@ -2,14 +2,14 @@
 
 import os
 import json
-from functools import partial, lru_cache
+from functools import lru_cache
 import requests
 
 INDEX_SRV_ENDPOINT = os.environ["INDEX_SRV_ENDPOINT"]
 
 @lru_cache(maxsize=1024)
 def search(query, n, mode):
-    if isinstance(query, list):
+    if isinstance(query, (list, tuple)):
         query = json.dumps(query)
     payload = {"mode": mode, "query": query, "n": n}
     url = f"{INDEX_SRV_ENDPOINT}/search"
@@ -21,4 +21,7 @@ def search(query, n, mode):
         raise Exception(response.text)
     return response.json().get("results")
 
-vector_search = partial(search, mode="vector")
+def vector_search(qvec, n):
+    if isinstance(qvec, list):
+        qvec = tuple(qvec)
+    return search(qvec, n, "vector")

@@ -86,7 +86,7 @@ class Combiner():
 
     def _extract_features(self, text):
         entities = encode(text, encoder="boe")
-        features = encode(entities, encoder="emb")
+        features = encode(tuple(entities), encoder="emb")
         return np.array(features)
 
     def _match(self, feature, doc):
