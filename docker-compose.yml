@@ -10,6 +10,7 @@ services:
       - type: bind
         source: ./plugins
         target: /app/plugins
+      - ${PWD}/config.ini:/app/config.ini
     ports:
       - ${PORT}:80
     environment:
