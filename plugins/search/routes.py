@@ -1,5 +1,6 @@
 from functools import partial
 import sys
+import asyncio
 from pathlib import Path
 from pydantic import BaseModel
 from fastapi import APIRouter
@@ -12,6 +13,7 @@ sys.path.append(BASE_DIR.as_posix())
 from core.encoder_srv import encode
 from core.index_srv import vector_search
 from core.documents import Document
+from core.db_srv import get_document
 
 from filters import PublicationDateFilter
 from obvious import Combiner
@@ -19,8 +21,8 @@ from obvious import Combiner
 
 class SearchResult(Document):
 
-    def __init__(self, doc_id: str, score: float):
-        super().__init__(doc_id)
+    def __init__(self, data: dict, score: float):
+        super().__init__(data)
         self.score = score
     
     def __repr__(self) -> str:
@@ -44,31 +46,37 @@ class SearchRequest(BaseModel):
     after: str = None
     rerank: bool = False
 
-def search(req: SearchRequest):
+async def search(req: SearchRequest):
     date_filter = PublicationDateFilter(req.after, req.before)
     qvec = vectorize(req.query)
     results = []
-    limit = 30
+    limit = 200
     m = req.n
-    while len(results) < req.n and m < limit:
+    if m > limit:
+        raise Exception(f"Request result count exceeds limit = {limit}")
+    while len(results) < req.n and m <= limit:
         neighbors = vector_search(qvec, m)
-        results = [SearchResult(*n) for n in neighbors]
+        doc_ids = [neighbor[0] for neighbor in neighbors]
+        scores = [neighbor[1] for neighbor in neighbors]
+        documents = await asyncio.gather(*map(get_document, doc_ids))
+        results = [SearchResult(documents[i], scores[i]) for i in range(len(documents))]
         results = date_filter.apply(results)
+        results = [r.json() for r in results]
         m = m * 2
     return {
         "query": req.query,
-        "results": [r.json() for r in results]
+        "results": results
     }
 
 router = APIRouter()
 
 @router.post('/search/102')
 async def run_query(req: SearchRequest):
-    return search(req)
+    return await search(req)
 
 @router.post("/search/103")
 async def run_query_103(req: SearchRequest):
-    results = search(req).get("results")
+    results = (await search(req)).get("results")
     docs = [r.get("abstract") for r in results]
     combiner = Combiner(req.query, docs)
     index_pairs = combiner.get_combinations(10)
@@ -80,17 +88,19 @@ async def run_query_103(req: SearchRequest):
 
 @router.get('/patents/{pn}/claims/{claim_no}/prior-art')
 async def find_prior_art(pn: str, claim_no: int):
-    doc = Document(pn)
+    patent_data = await get_document(pn)
+    doc = Document(patent_data)
     query = doc.json().get("claims")[claim_no-1]
     before = doc.json().get("publication_date")
     req = SearchRequest(query=query, before=before, n=10)
-    response = search(req)
+    response = await search(req)
     return response
 
 @router.get('/patents/{pn}/similar')
 async def find_similar(pn: str):
-    doc = Document(pn)
+    patent_data = await get_document(pn)
+    doc = Document(patent_data)
     query = doc.json().get("abstract")
     req = SearchRequest(query=query, n=10)
-    response = search(req)
+    response = await search(req)
     return response

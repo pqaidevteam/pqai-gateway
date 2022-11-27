@@ -2,19 +2,14 @@
 """
 
 import os
-from functools import lru_cache
-import requests
+import httpx
 
 DB_SRV_ENDPOINT = os.environ["DB_SRV_ENDPOINT"]
 
-@lru_cache(maxsize=1024)
-def get_document(doc_id: str) -> dict:
-    """Get document by id"""
+async def get_document(doc_id: str) -> dict:
+    """Get document by ID"""
     url = f"{DB_SRV_ENDPOINT}/patents/{doc_id}"
-    try:
-        response = requests.get(url, timeout=5)
-    except Exception as e:
-        raise e
-    if response.status_code != 200:
-        raise Exception(response.text)
-    return response.json()
+    async with httpx.AsyncClient() as client:
+        timeout = httpx.Timeout(10.0, read=20.0)
+        response = await client.get(url, timeout=timeout)
+        return response.json()
