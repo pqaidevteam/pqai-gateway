@@ -1,6 +1,7 @@
 import unittest
 import sys
 from pathlib import Path
+import asyncio
 import numpy as np
 from dotenv import load_dotenv
 
@@ -28,7 +29,7 @@ class TestServices(unittest.TestCase):
         pass
 
     def test_db_service(self):
-        doc = get_document("US7654321B2")
+        doc = asyncio.run(get_document("US7654321B2"))
         self.assertIsInstance(doc, dict)
         self.assertGreater(len(doc.keys()), 0)
 
