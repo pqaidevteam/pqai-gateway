@@ -1,6 +1,8 @@
 # PQAI Gateway
 
-Public facing API for providing functionality such as prior-art searching
+Public facing API for providing functionality such as prior-art searching.
+
+For more detailed information, please refer to [PQAI Wiki](https://github.com/pqaidevteam/pqai/wiki/pqai-gateway).
 
 ## License
 
