@@ -12,8 +12,18 @@ venv.bak/
 /assets/*
 !assets/README.md
 
-/plugins/*/assets/*
-!/plugins/*/assets/README.md
+/plugins/*
+
+
+# Built-in plugins
+!plugins/search
+!plugins/cpc
+
+# Ignore built-in plugin assets, except README file
+/plugins/search/assets/*
+!/plugins/search/assets/README.md
+/plugins/cpc/assets/*
+!/plugins/cpc/assets/README.md
 
 .env
 
